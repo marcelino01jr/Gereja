@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Favicon to Circle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #ccc;
+            margin: 20px;
+            display: none;
+        }
+        button {
+            background: #1F2A44;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #2a3a5a;
+        }
+        #preview {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        .preview-item {
+            text-align: center;
+        }
+        .preview-item img {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        .preview-item p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔵 Converter Logo Jadi Bulat</h1>
+    <p>Tool ini akan mengubah favicon-32x32.png jadi bentuk bulat</p>
+    
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <button onclick="document.getElementById('fileInput').click()">Pilih Gambar (favicon-32x32.png)</button>
+    
+    <div id="preview"></div>
+    
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas32" width="32" height="32"></canvas>
+    <canvas id="canvas180" width="180" height="180"></canvas>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    createCircularFavicons(img);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        function createCircularFavicons(img) {
+            preview.innerHTML = '<h2>✅ Preview & Download:</h2>';
+            
+            // Create 16x16
+            createCircularIcon(img, 16, 'favicon-16x16.png', 'Favicon 16x16');
+            
+            // Create 32x32
+            createCircularIcon(img, 32, 'favicon-32x32.png', 'Favicon 32x32');
+            
+            // Create 180x180 for Apple
+            createCircularIcon(img, 180, 'apple-touch-icon.png', 'Apple Touch Icon 180x180');
+            
+            // Create ICO (32x32)
+            createCircularIcon(img, 32, 'favicon.ico', 'Favicon ICO');
+        }
+        
+        function createCircularIcon(img, size, filename, label) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create circular clip
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            
+            // Draw image
+            ctx.drawImage(img, 0, 0, size, size);
+            
+            // Convert to blob and create download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                
+                // Create preview
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'preview-item';
+                
+                const previewImg = document.createElement('img');
+                previewImg.src = url;
+                previewImg.width = size > 32 ? 180 : size * 4;
+                previewImg.height = size > 32 ? 180 : size * 4;
+                previewImg.style.imageRendering = size <= 32 ? 'pixelated' : 'auto';
+                
+                const previewLabel = document.createElement('p');
+                previewLabel.textContent = label;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = `Download ${filename}`;
+                downloadBtn.onclick = function() {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                };
+                
+                previewDiv.appendChild(previewImg);
+                previewDiv.appendChild(previewLabel);
+                previewDiv.appendChild(downloadBtn);
+                preview.appendChild(previewDiv);
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
